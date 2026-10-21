@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-accent="sky">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Bruno — Sales Operations & Data Analyst</title>
+<link rel="preconnect" href="[fonts.googleapis.com](https://fonts.googleapis.com)">
+<link rel="preconnect" href="[fonts.gstatic.com](https://fonts.gstatic.com)" crossorigin>
+<link href="[fonts.googleapis.com](https://fonts.googleapis.com/css2?family=Inconsolata:wght@300;400;600;700;900&display=swap)" rel="stylesheet">
+<style>
+/* ============================================================
+   0. TOKENS
+   ============================================================ */
+:root{
+  --font: 'Inconsolata', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* accent presets, swapped by [data-accent] */
+  --accent: #2f9bff;
+  --accent-ink: #04121f;
+
+  --bg:      #05070a;
+  --bg-2:    #0a0f16;
+  --panel:   #0c1219;
+  --line:    #1e2a38;
+  --fg:      #eef4fb;
+  --fg-dim:  #8ea3b8;
+  --green:   #23e07a;
+
+  --shadow: 8px 8px 0 var(--line);
+  --dur: .6s;
+  --ease: cubic-bezier(.16,1,.3,1);
+  --maxw: 1180px;
+  --pad: clamp(20px, 5vw, 72px);
+}
+html[data-accent="sky"]   { --accent:#2f9bff; }
+html[data-accent="green"] { --accent:#23e07a; }
+html[data-accent="magenta"]{--accent:#ff4fd8; }
+html[data-accent="amber"] { --accent:#ffb020; }
+
+html[data-theme="light"]{
+  --bg:     #f4f8ff;
+  --bg-2:   #e7f0fb;
+  --panel:  #ffffff;
+  --line:   #c3d3e6;
+  --fg:     #07131f;
+  --fg-dim: #4a6480;
+  --green:  #0fa958;
+  --shadow: 8px 8px 0 rgba(7,19,31,.14);
+}
+html[data-theme="light"][data-accent="sky"]{ --accent:#0d6efd; }
+html[data-theme="light"][data-accent="green"]{ --accent:#0fa958; }
+html[data-theme="light"][data-accent="magenta"]{ --accent:#d61fae; }
+html[data-theme="light"][data-accent="amber"]{ --accent:#c07a00; }
+
+/* ============================================================
+   1. RESET
+   ============================================================ */
+*,*::before,*::after{ box-sizing:border-box; }
+html{ scroll-behavior:smooth; -webkit-text-size-adjust:100%; }
+body{
+  margin:0;
+  font-family:var(--font);
+  background:var(--bg);
+  color:var(--fg);
+  font-size: clamp(15px, 1.05vw, 17px);
+  line-height:1.6;
+  overflow-x:hidden;
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+h1,h2,h3,p,ul,figure{ margin:0; }
+ul{ padding:0; list-style:none; }
+a{ color:inherit; text-decoration:none; }
+button{ font:inherit; color:inherit; background:none; border:0; cursor:pointer; }
+img{ max-width:100%; display:block; }
+::selection{ background:var(--accent); color:var(--accent-ink); }
+
+@media (prefers-reduced-motion: reduce){
+  *{ animation-duration:.01ms !important; animation-iteration-count:1 !important;
+     transition-duration:.01ms !important; scroll-behavior:auto !important; }
+}
+
+/* ============================================================
+   2. LAYOUT PRIMITIVES
+   ============================================================ */
+.wrap{ width:100%; max-width:var(--maxw); margin-inline:auto; padding-inline:var(--pad); }
+section{ padding-block: clamp(72px, 11vh, 140px); position:relative; }
+
+.eyebrow{
+  font-size:.72rem; letter-spacing:.34em; text-transform:uppercase;
+  color:var(--accent); font-weight:700;
+  display:flex; align-items:center; gap:12px; margin-bottom:20px;
+}
+.eyebrow::after{ content:""; height:1px; flex:1; background:var(--line); }
+
+.h2{
+  font-size: clamp(2rem, 6vw, 4.4rem);
+  font-weight:900; letter-spacing:-.03em; line-height:.95; text-transform:uppercase;
+}
+.lead{ color:var(--fg-dim); max-width:60ch; margin-top:18px; }
+.hr{ height:1px; background:var(--line); border:0; margin:0; }
+
+/* ============================================================
+   3. FIXED CHROME : topbar, rail, canvas
+   ============================================================ */
+#particles{
+  position:fixed; inset:0; z-index:0; pointer-events:none;
+}
+.glow{
+  position:fixed; z-index:0; pointer-events:none; border-radius:50%;
+  filter: blur(120px); opacity:.5; transition:background var(--dur) var(--ease);
+}
+.glow.a{ width:46vw; height:46vw; top:-14vw; right:-10vw; background:var(--accent); opacity:.22; }
+.glow.b{ width:38vw; height:38vw; bottom:-14vw; left:-12vw; background:var(--green); opacity:.14; }
+
+.topbar{
+  position:fixed; z-index:40; inset:0 0 auto 0;
+  display:flex; align-items:center; justify-content:space-between; gap:16px;
+  padding:14px var(--pad);
+  backdrop-filter: blur(14px);
+  background:color-mix(in srgb, var(--bg) 72%, transparent);
+  border-bottom:1px solid var(--line);
+}
+.brand{ display:flex; align-items:center; gap:12px; font-weight:700; letter-spacing:-.01em; }
+.brand b{ font-weight:900; }
+
+.progress{
+  position:fixed; z-index:41; top:0; left:0; height:3px;
+  width:0%; background:linear-gradient(90deg, var(--accent), var(--green));
+}
+
+.switches{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+
+/* --- pill switch : theme --- */
+.switch{
+  display:inline-flex; align-items:center; gap:10px;
+  border:1px solid var(--line); background:var(--panel);
+  padding:7px 12px; font-size:.72rem; letter-spacing:.16em; text-transform:uppercase;
+  font-weight:700; color:var(--fg-dim);
+}
+.switch:hover{ border-color:var(--accent); color:var(--fg); }
+.track{
+  width:44px; height:24px; border:1px solid var(--line); border-radius:999px;
+  position:relative; background:var(--bg-2); flex:none;
+}
+.knob{
+  position:absolute; top:2px; left:2px; width:18px; height:18px; border-radius:50%;
+  background:var(--accent); display:grid; place-items:center; font-size:11px;
+  transition: transform .45s var(--ease), background .3s;
+}
+html[data-theme="light"] .knob{ transform:translateX(20px); }
+.knob .sun{ display:none; } html[data-theme="light"] .knob .sun{ display:block; }
+html[data-theme="light"] .knob .moon{ display:none; }
+
+/* --- accent dot picker --- */
+.dots{ display:inline-flex; align-items:center; gap:7px; border:1px solid var(--line); background:var(--panel); padding:8px 11px; }
+.dot{
+  width:15px; height:15px; border-radius:50%; border:1px solid var(--line);
+  transition:transform .3s var(--ease), box-shadow .3s;
+}
+.dot[data-accent="sky"]{ background:#2f9bff; }
+.dot[data-accent="green"]{ background:#23e07a; }
+.dot[data-accent="magenta"]{ background:#ff4fd8; }
+.dot[data-accent="amber"]{ background:#ffb020; }
+.dot:hover{ transform:scale(1.22); }
+.dot[aria-pressed="true"]{ box-shadow:0 0 0 2px var(--bg), 0 0 0 4px var(--accent); }
+
+/* --- side rail : section index --- */
+.rail{
+  position:fixed; z-index:38; left:calc(var(--pad) / 2 + 4px); top:50%;
+  transform:translateY(-50%); display:none; flex-direction:column; gap:16px;
+}
+@media(min-width:1500px){ .rail{ display:flex; } }
+.rail a{
+  width:11px; height:11px; border:1px solid var(--line); border-radius:50%;
+  position:relative; transition:.3s var(--ease);
+}
+.rail a::after{
+  content:attr(data-label); position:absolute; left:22px; top:50%; translate:0 -50%;
+  font-size:.66rem; letter-spacing:.2em; text-transform:uppercase; white-space:nowrap;
+  color:var(--fg-dim); opacity:0; transition:.3s;
+}
+.rail a:hover::after, .rail a.active::after{ opacity:1; color:var(--accent); }
+.rail a.active{ background:var(--accent); border-color:var(--accent); scale:1.35; }
+
+/* ============================================================
+   4. PRELOADER  (liquid charging bar)
+   ============================================================ */
+#loader{
+  position:fixed; inset:0; z-index:100; background:var(--bg);
+  display:grid; place-items:center; transition:opacity .7s var(--ease), visibility .7s;
+}
+#loader.done{ opacity:0; visibility:hidden; }
+.load-inner{ width:min(560px, 84vw); }
+.load-top{
+  display:flex; justify-content:space-between; align-items:baseline;
+  font-size:.74rem; letter-spacing:.28em; text-transform:uppercase; color:var(--fg-dim);
+  margin-bottom:12px;
+}
+.load-top b{ color:var(--accent); font-size:1rem; letter-spacing:0; }
+.bar{
+  position:relative; height:26px; border:1px solid var(--line); background:var(--bg-2); overflow:hidden;
+}
+.fill{
+  position:absolute; inset:0 auto 0 0; width:0%;
+  background:linear-gradient(90deg, var(--accent), var(--green));
+}
+.fill::after{ /* liquid surface ripple */
+  content:""; position:absolute; inset:auto -10px -2px auto; width:24px; height:200%;
+  background:inherit; filter:blur(9px); opacity:.9;
+}
+.wave{
+  position:absolute; top:-50%; left:calc(100% - 26px); width:24px; height:200%;
+  border-radius:45%; background:var(--bg); opacity:.55;
+  animation: spin 2.4s linear infinite;
+}
+@keyframes spin{ to{ transform:rotate(360deg); } }
+.load-msg{ margin-top:14px; font-size:.78rem; letter-spacing:.2em; text-transform:uppercase; color:var(--fg-dim); }
+
+/* ============================================================
+   5. REVEAL SYSTEM
+   ============================================================ */
+[data-reveal]{
+  opacity:0; transform:translateY(34px);
+  transition: opacity .9s var(--ease), transform .9s var(--ease);
+  transition-delay:var(--d, 0ms);
+}
+[data-reveal].in{ opacity:1; transform:none; }
+
+/* ============================================================
+   6. HERO
+   ============================================================ */
+.hero{
+  min-height:100svh; display:grid; align-content:center;
+  padding-top:clamp(120px, 18vh, 200px);
+}
+.hero-grid{ display:grid; gap:clamp(28px, 5vw, 64px); grid-template-columns:1fr; align-items:center; }
+@media(min-width:960px){ .hero-grid{ grid-template-columns:minmax(0,1fr) 340px; } }
+
+.hello{
+  font-size: clamp(3rem, 12.5vw, 10.5rem);
+  font-weight:900; line-height:.86; letter-spacing:-.045em; text-transform:uppercase;
+}
+.hello .line{ display:block; overflow:hidden; }
+.hello .line > span{ display:block; transform:translateY(105%); animation: rise 1s var(--ease) forwards; }
+.hello .line:nth-child(1) > span{ animation-delay:.15s; }
+.hello .line:nth-child(2) > span{ animation-delay:.30s; }
+.hello .line:nth-child(3) > span{ animation-delay:.45s; }
+@keyframes rise{ to{ transform:none; } }
+.hello em{ font-style:normal; color:var(--accent); }
+
+.hero-meta{ margin-top:26px; display:flex; flex-wrap:wrap; gap:10px 22px; align-items:center; color:var(--fg-dim); font-size:.86rem; }
+.chip{
+  border:1px solid var(--line); padding:5px 12px; font-size:.7rem;
+  letter-spacing:.2em; text-transform:uppercase; color:var(--fg-dim);
+}
+.chip.on{ border-color:var(--accent); color:var(--accent); }
+
+.hero-cta{ margin-top:34px; display:flex; flex-wrap:wrap; gap:14px; }
+.btn{
+  display:inline-flex; align-items:center; gap:10px;
+  padding:14px 22px; border:1px solid var(--fg); background:var(--fg); color:var(--bg);
+  font-weight:700; letter-spacing:.12em; text-transform:uppercase; font-size:.74rem;
+  transition:.3s var(--ease);
+}
+.btn:hover{ background:var(--accent); border-color:var(--accent); color:var(--accent-ink); transform:translate(-3px,-3px); box-shadow:6px 6px 0 var(--line); }
+.btn.ghost{ background:transparent; color:var(--fg); }
+.btn.ghost:hover{ background:var(--accent); color:var(--accent-ink); border-color:var(--accent); }
+
+/* --- rotating mesh sphere --- */
+.sphere-wrap{ display:grid; place-items:center; }
+.sphere{ width:min(300px, 62vw); aspect-ratio:1; filter:drop-shadow(0 0 40px color-mix(in srgb, var(--accent) 40%, transparent)); }
+.sphere svg{ width:100%; height:100%; overflow:visible; }
+.sphere .spin-a{ animation: rot 26s linear infinite; transform-origin:50% 50%; }
+.sphere .spin-b{ animation: rot 18s linear infinite reverse; transform-origin:50% 50%; }
+.sphere .spin-c{ animation: rot 34s linear infinite; transform-origin:50% 50%; }
+@keyframes rot{ to{ transform:rotate(360deg); } }
+.sphere ellipse{ fill:none; stroke:var(--accent); stroke-width:1; opacity:.75; }
+.sphere ellipse.g{ stroke:var(--green); opacity:.55; }
+.sphere circle.core{ fill:var(--accent); opacity:.9; }
+.sphere circle.node{ fill:var(--green); }
+
+.scroll-hint{
+  margin-top:52px; font-size:.7rem; letter-spacing:.3em; text-transform:uppercase; color:var(--fg-dim);
+  display:flex; align-items:center; gap:12px;
+}
+.scroll-hint i{ display:block; width:52px; height:1px; background:var(--accent); animation: pulse 2s infinite; }
+@keyframes pulse{ 0%,100%{ transform:scaleX(.4); opacity:.4; } 50%{ transform:scaleX(1); opacity:1; } }
+
+/* ============================================================
+   7. STAT STRIP
+   ============================================================ */
+.stats{
+  display:grid; gap:1px; background:var(--line); border:1px solid var(--line);
+  grid-template-columns:repeat(2,1fr);
+}
+@media(min-width:820px){ .stats{ grid-template-columns:repeat(4,1fr); } }
+.stat{ background:var(--bg); padding:26px clamp(16px,2.5vw,30px); }
+.stat b{ display:block; font-size:clamp(2rem,4.6vw,3.4rem); font-weight:900; letter-spacing:-.03em; line-height:1; }
+.stat b i{ font-style:normal; color:var(--accent); }
+.stat span{ display:block; margin-top:8px; font-size:.72rem; letter-spacing:.22em; text-transform:uppercase; color:var(--fg-dim); }
+
+/* ============================================================
+   8. CHRONOLOGY LINE
+   ============================================================ */
+.timeline{ position:relative; margin-top:clamp(40px,7vw,80px); padding-left:clamp(28px,7vw,72px); }
+.spine{
+  position:absolute; left:clamp(8px,2.2vw,24px); top:0; bottom:0; width:2px; background:var(--line);
+}
+.spine-fill{
+  position:absolute; left:0; top:0; width:100%; height:0%;
+  background:linear-gradient(180deg, var(--accent), var(--green));
+  box-shadow:0 0 18px var(--accent);
+}
+
+.job{ position:relative; padding-block:clamp(24px,4vw,38px); border-top:1px solid var(--line); }
+.job:last-child{ border-bottom:1px solid var(--line); }
+.job::before{
+  content:""; position:absolute; left:calc(clamp(8px,2.2vw,24px) - clamp(28px,7vw,72px) - 6px);
+  top:calc(clamp(24px,4vw,38px) + 12px-l);
+  top:calc(clamp(24px,4vw,38px) + 10px);
+  width:14px; height:14px; border-radius:50%; border:2px solid var(--bg);
+  background:var(--line); transition:.5s var(--ease);
+}
+.job.in::before{ background:var(--accent); box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 30%, transparent); }
+
+.job-head{
+  width:100%; display:grid; gap:6px clamp(16px,3vw,40px);
+  grid-template-columns:1fr auto; align-items:baseline; text-align:left;
+}
+@media(min-width:760px){ .job-head{ grid-template-columns:150px minmax(0,1fr) auto; } }
+.job-years{ font-size:.76rem; letter-spacing:.2em; color:var(--accent); font-weight:700; }
+.job-role{ font-size:clamp(1.15rem,2.6vw,1.85rem); font-weight:900; letter-spacing:-.02em; text-transform:uppercase; line-height:1.05; }
+.job-co{ font-size:.8rem; color:var(--fg-dim); grid-column:1/-1; }
+@media(min-width:760px){ .job-co{ grid-column:2; } }
+.job-plus{
+  justify-self:end; width:34px; height:34px; border:1px solid var(--line); border-radius:50%;
+  display:grid; place-items:center; font-size:1rem; color:var(--fg-dim); transition:.35s var(--ease);
+}
+.job-head:hover .job-plus{ background:var(--accent); color:var(--accent-ink); border-color:var(--accent); rotate:90deg; }
+
+.job-body{
+  overflow:hidden; max-height:0; opacity:0;
+  transition: max-height .6s var(--ease), opacity .5s var(--ease), margin .5s;
+}
+.job.open .job-body{ max-height:520px; opacity:1; margin-top:18px; }
+.job-body ul{ display:grid; gap:10px; max-width:74ch; }
+.job-body li{ padding-left:22px; position:relative; color:var(--fg-dim); }
+.job-body li::before{ content:"▸"; position:absolute; left:0; color:var(--accent); }
+.tags{ display:flex; flex-wrap:wrap; gap:8px; margin-top:18px; }
+.tag{
+  font-size:.68rem; letter-spacing:.16em; text-transform:uppercase;
+  border:1px solid var(--line); padding:4px 10px; color:var(--fg-dim);
+}
+
+/* ============================================================
+   9. CARDS / EDUCATION / VALUE
+   ============================================================ */
+.grid{ display:grid; gap:clamp(16px,2.4vw,28px); }
+.cols-3{ grid-template-columns:1fr; }
+@media(min-width:760px){ .cols-3{ grid-template-columns:repeat(3,1fr); } }
+.cols-2{ grid-template-columns:1fr; }
+@media(min-width:860px){ .cols-2{ grid-template-columns:1.05fr .95fr; } }
+
+.card{
+  border:1px solid var(--line); background:var(--panel); padding:clamp(22px,3vw,34px);
+  position:relative; transition:.4s var(--ease);
+}
+.card:hover{ border-color:var(--accent); transform:translate(-4px,-4px); box-shadow:var(--shadow); }
+.card h3{ font-size:1.15rem; font-weight:900; text-transform:uppercase; letter-spacing:-.01em; }
+.card .num{ font-size:.72rem; letter-spacing:.28em; color:var(--accent); display:block; margin-bottom:14px; }
+
+.value li{
+  border-top:1px solid var(--line); padding:20px 0; display:grid; gap:4px 18px;
+  grid-template-columns:auto 1fr;
+}
+.value li:last-child{ border-bottom:1px solid var(--line); }
+.value b{ color:var(--accent); font-size:.78rem; letter-spacing:.16em; padding-top:5px; }
+.value p{ color:var(--fg-dim); }
+
+/* ============================================================
+   10. PROJECTS
+   ============================================================ */
+.proj .links{ display:flex; gap:10px; margin-top:24px; flex-wrap:wrap; }
+.link{
+  display:inline-flex; align-items:center; gap:8px; font-size:.72rem; font-weight:700;
+  letter-spacing:.16em; text-transform:uppercase; border-bottom:1px solid var(--line); padding-bottom:3px;
+  transition:.3s;
+}
+.link:hover{ color:var(--accent); border-color:var(--accent); gap:12px; }
+.proj-year{ font-size:.7rem; letter-spacing:.22em; color:var(--fg-dim); }
+
+/* ============================================================
+   11. PERIODIC TABLE
+   ============================================================ */
+.ptable{
+  margin-top:clamp(34px,5vw,54px);
+  display:grid; gap:8px;
+  grid-template-columns:repeat(auto-fill, minmax(84px, 1fr));
+}
+.cell{
+  position:relative; aspect-ratio:1; border:1px solid var(--line); background:var(--panel);
+  padding:8px; display:flex; flex-direction:column; justify-content:space-between; text-align:left;
+  transition: transform .35s var(--ease), border-color .35s, background .35s;
+  animation: floaty 6s ease-in-out infinite;
+}
+@keyframes floaty{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-5px); } }
+.cell:hover, .cell:focus-visible{
+  border-color:var(--accent); background:color-mix(in srgb, var(--accent) 12%, var(--panel));
+  transform:translateY(-8px) scale(1.05); z-index:5; outline:none;
+}
+.cell .z{ font-size:.62rem; color:var(--fg-dim); }
+.cell .sym{ font-size:clamp(1.1rem,2.4vw,1.5rem); font-weight:900; letter-spacing:-.02em; }
+.cell .nm{ font-size:.6rem; letter-spacing:.06em; text-transform:uppercase; color:var(--fg-dim); line-height:1.15; }
+.cell.soft{ border-left:3px solid var(--green); }
+.cell.tech{ border-left:3px solid var(--accent); }
+
+.legend{ display:flex; gap:22px; margin-top:26px; font-size:.72rem; letter-spacing:.18em; text-transform:uppercase; color:var(--fg-dim); flex-wrap:wrap; }
+.legend i{ display:inline-block; width:12px; height:12px; border:2px solid var(--accent); margin-right:8px; vertical-align:-2px; }
+.legend i.g{ border-color:var(--green); }
+
+/* ============================================================
+   12. POP WEB WINDOW (skill / job popovers)
+   ============================================================ */
+.pop{
+  position:fixed; z-index:70; width:min(340px, calc(100vw - 32px));
+  background:var(--panel); border:1px solid var(--accent);
+  box-shadow:10px 10px 0 color-mix(in srgb, var(--accent) 45%, transparent);
+  padding:0; opacity:0; visibility:hidden; transform:translateY(10px) scale(.97);
+  transition: opacity .28s var(--ease), transform .28s var(--ease), visibility .28s;
+}
+.pop.show{ opacity:1; visibility:visible; transform:none; }
+.pop-bar{
+  display:flex; align-items:center; gap:8px; padding:8px 12px;
+  border-bottom:1px solid var(--line); background:var(--bg-2);
+}
+.pop-bar .d{ width:9px; height:9px; border-radius:50%; background:var(--line); }
+.pop-bar .d:first-child{ background:var(--accent); }
+.pop-bar .d:nth-child(2){ background:var(--green); }
+.pop-title{ margin-left:auto; font-size:.62rem; letter-spacing:.2em; text-transform:uppercase; color:var(--fg-dim); }
+.pop-close{ font-size:.9rem; color:var(--fg-dim); line-height:1; padding:2px 4px; }
+.pop-close:hover{ color:var(--accent); }
+.pop-body{ padding:16px 18px 20px; }
+.pop-body h4{ margin:0 0 4px; font-size:1.05rem; font-weight:900; text-transform:uppercase; letter-spacing:-.01em; }
+.pop-body .kind{ font-size:.64rem; letter-spacing:.24em; text-transform:uppercase; color:var(--accent); }
+.pop-body p{ margin-top:12px; font-size:.86rem; color:var(--fg-dim); }
+.pop-meter{ margin-top:16px; height:6px; border:1px solid var(--line); position:relative; overflow:hidden; }
+.pop-meter i{ position:absolute; inset:0 auto 0 0; width:0%; background:linear-gradient(90deg,var(--accent),var(--green)); transition:width .7s var(--ease); }
+
+/* ============================================================
+   13. CONTACT / FOOTER
+   ============================================================ */
+.contact{ text-align:left; }
+.mailto{
+  display:inline-block; margin-top:26px; font-size:clamp(1.5rem,5.2vw,3.4rem); font-weight:900;
+  letter-spacing:-.03em; border-bottom:3px solid var(--line); transition:.4s var(--ease); word-break:break-word;
+}
+.mailto:hover{ color:var(--accent); border-color:var(--accent); }
+
+footer{ border-top:1px solid var(--line); padding:28px var(--pad); display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap; font-size:.72rem; letter-spacing:.16em; text-transform:uppercase; color:var(--fg-dim); position:relative; z-index:2; }
+footer a:hover{ color:var(--accent); }
+
+/* scrollbar */
+::-webkit-scrollbar{ width:11px; }
+::-webkit-scrollbar-track{ background:var(--bg-2); }
+::-webkit-scrollbar-thumb{ background:var(--line); }
+::-webkit-scrollbar-thumb:hover{ background:var(--accent); }
+</style>
+</head>
+<body>
+
+<!-- ========== PRELOADER ========== -->
+<div id="loader">
+  <div class="load-inner">
+    <div class="load-top"><span>Initializing portfolio</span><b id="pct">0%</b></div>
+    <div class="bar"><div class="fill" id="fill"><span class="wave"></span></div></div>
+    <div class="load-msg" id="loadmsg">Loading profile</div>
+  </div>
+</div>
+
+<!-- ========== BG ========== -->
+<canvas id="particles" aria-hidden="true"></canvas>
+<div class="glow a" aria-hidden="true"></div>
+<div class="glow b" aria-hidden="true"></div>
+
+<!-- ========== TOPBAR ========== -->
+<div class="progress" id="progress" aria-hidden="true"></div>
+<header class="topbar">
+  <a class="brand" href="#top">
+    <span>BRUNO<b>.OPS</b></span>
+  </a>
+  <div class="switches">
+    <button class="switch" id="themeBtn" aria-label="Toggle light and dark mode">
+      <span>Theme</span>
+      <span class="track"><span class="knob"><span class="moon">☾</span><span class="sun">☀</span></span></span>
+    </button>
+    <div class="dots" role="group" aria-label="Accent color">
+      <button class="dot" data-accent="sky"     aria-pressed="true"  aria-label="Blue accent"></button>
+      <button class="dot" data-accent="green"   aria-pressed="false" aria-label="Green accent"></button>
+      <button class="dot" data-accent="magenta" aria-pressed="false" aria-label="Magenta accent"></button>
+      <button class="dot" data-accent="amber"   aria-pressed="false" aria-label="Amber accent"></button>
+    </div>
+  </div>
+</header>
+
+<!-- ========== SIDE RAIL ========== -->
+<nav class="rail" aria-label="Sections">
+  <a href="#top"      data-label="Hello"      class="active"></a>
+  <a href="#track"    data-label="Track"></a>
+  <a href="#value"    data-label="Value"></a>
+  <a href="#work"     data-label="Work"></a>
+  <a href="#skills"   data-label="Skills"></a>
+  <a href="#projects" data-label="Projects"></a>
+  <a href="#contact"  data-label="Contact"></a>
+</nav>
+
+<main id="top">
+
+<!-- ========== HERO ========== -->
+<section class="hero wrap" id="hero">
+  <div class="hero-grid">
+    <div>
+      <h1 class="hello">
+        <span class="line"><span>Hello,</span></span>
+        <span class="line"><span>I am</span></span>
+        <span class="line"><span><em>Bruno</em></span></span>
+      </h1>
+
+      <div class="hero-meta" data-reveal style="--d:600ms">
+        <span class="chip on">Sales Operations</span>
+        <span class="chip">Data Analyst</span>
+        <span class="chip">Payments</span>
+        <span>Paris · Marseille · Kraków</span>
+      </div>
+
+      <p class="lead" data-reveal style="--d:720ms">
+        I turn messy revenue, payment and CRM data into decisions teams can act on —
+        reporting pipelines, clean processes, measurable growth.
+      </p>
+
+      <div class="hero-cta" data-reveal style="--d:840ms">
+        <a class="btn" href="#work">View experience</a>
+        <a class="btn ghost" href="#contact">Get in touch</a>
+      </div>
+
+      <div class="scroll-hint" data-reveal style="--d:960ms"><i></i> Scroll</div>
+    </div>
+
+    <!-- rotating mesh sphere -->
+    <div class="sphere-wrap" data-reveal style="--d:900ms">
+      <div class="sphere" aria-hidden="true">
+        <svg viewBox="-110 -110 220 220">
+          <g class="spin-a">
+            <ellipse rx="100" ry="100"/>
+            <ellipse rx="100" ry="62"/>
+            <ellipse rx="100" ry="30"/>
+          </g>
+          <g class="spin-b">
+            <ellipse rx="62" ry="100" class="g"/>
+            <ellipse rx="30" ry="100" class="g"/>
+          </g>
+          <g class="spin-c">
+            <ellipse rx="100" ry="86" transform="rotate(45)"/>
+            <ellipse rx="100" ry="86" transform="rotate(-45)"/>
+          </g>
+          <circle class="core" r="7"/>
+          <circle class="node" cx="100" r="5"/>
+          <circle class="node" cy="-100" r="5"/>
+          <circle class="node" cx="-71" cy="71" r="5"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- stat strip -->
+  <div class="stats" data-reveal style="--d:400ms; margin-top:clamp(56px,9vh,110px)">
+    <div class="stat"><b data-count="6">0</b><span>Years in ops &amp; data</span></div>
+    <div class="stat"><b data-count="4">0</b><span>Companies</span></div>
+    <div class="stat"><b data-count="3">0</b><span>Cities</span></div>
+    <div class="stat"><b><i>M+</i></b><span>Transactions analysed</span></div>
+  </div>
+</section>
+
+<!-- ========== TRACK RECORD ========== -->
+<section id="track">
+  <div class="wrap">
+    <div class="eyebrow" data-reveal>01 — Track record</div>
+    <h2 class="h2" data-reveal style="--d:80ms">Experience</h2>
+    <p class="lead" data-reveal style="--d:160ms">
+      Four roles, one thread: revenue accuracy, payment reliability, and reporting people trust.
+      Click a role to open the detail.
+    </p>
+
+    <div class="timeline" id="timeline">
+      <div class="spine"><div class="spine-fill" id="spineFill"></div></div>
+
+      <!-- JOB 1 -->
+      <article class="job" data-reveal>
+        <button class="job-head" aria-expanded="false">
+          <span class="job-years">2025 — 2026</span>
+          <span>
+            <span class="job-role">Sales Operations Manager</span>
+            <span class="job-co">Gallia Records Store · Marseille, France</span>
+          </span>
+          <span class="job-plus" aria-hidden="true">+</span>
+        </button>
+        <div class="job-body">
+          <ul>
+            <li>Owned the full sales operations stack: order flow, stock sync between store and online catalogue, and daily revenue reconciliation.</li>
+            <li>Built the sales dashboard the team actually used — daily KPIs on footfall-to-conversion, basket value and product rotation.</li>
+            <li>Cut manual reporting time by automating exports and turning recurring spreadsheets into a single source of truth.</li>
+            <li>Ran pricing and promotion analysis to decide which catalogue lines were worth shelf space.</li>
+          </ul>
+          <div class="tags">
+            <span class="tag">Reporting</span><span class="tag">KPI design</span>
+            <span class="tag">Excel / Sheets</span><span class="tag">Process design</span>
+            <span class="tag">Retail analytics</span>
+          </div>
+        </div>
+      </article>
+
+      <!-- JOB 2 -->
+      <article class="job" data-reveal style="--d:60ms">
+        <button class="job-head" aria-expanded="false">
+          <span class="job-years">2022 — 2025</span>
+          <span>
+            <span class="job-role">Data Analyst</span>
+            <span class="job-co">Accenture · Kraków, Poland</span>
+          </span>
+          <span class="job-plus" aria-hidden="true">+</span>
+        </button>
+        <div class="job-body">
+          <ul>
+            <li>Delivered analytics for large enterprise clients — from raw data extraction to the story in front of the client.</li>
+            <li>Wrote SQL and Python to clean, model and reconcile datasets, reducing recurring data quality issues at the source.</li>
+            <li>Built Power BI / reporting dashboards used by non-technical stakeholders to steer operations weekly.</li>
+            <li>Translated business questions into measurable definitions, so two teams stopped reporting two different numbers.</li>
+          </ul>
+          <div class="tags">
+            <span class="tag">SQL</span><span class="tag">Python</span>
+            <span class="tag">Power BI</span><span class="tag">Data modelling</span>
+            <span class="tag">Stakeholder management</span>
+          </div>
+        </div>
+      </article>
+
+      <!-- JOB 3 -->
+      <article class="job" data-reveal style="--d:120ms">
+        <button class="job-head" aria-expanded="false">
+          <span class="job-years">2021</span>
+          <span>
+            <span class="job-role">Payment System Integration Analyst</span>
+            <span class="job-co">Cognizant · Kraków, Poland — Transaction Processing</span>
+          </span>
+          <span class="job-plus" aria-hidden="true">+</span>
+        </button>
+        <div class="job-body">
+          <ul>
+            <li>Supported payment integration and transaction processing flows between merchants, acquirers and processors.</li>
+            <li>Investigated failed and stuck transactions end to end — from authorisation logs to settlement — and drove fixes to closure.</li>
+            <li>Documented integration specs and edge cases so new merchants could onboard without reinventing the flow.</li>
+            <li>Monitored processing volumes, error rates and settlement accuracy against service expectations.</li>
+          </ul>
+          <div class="tags">
+            <span class="tag">Payments</span><span class="tag">Transaction processing</span>
+            <span class="tag">Settlement</span><span class="tag">Incident analysis</span>
+            <span class="tag">Technical documentation</span>
+          </div>
+        </div>
+      </article>
+
+      <!-- JOB 4 -->
+      <article class="job" data-reveal style="--d:180ms">
+        <button class="job-head" aria-expanded="false">
+          <span class="job-years">2019 — 2020</span>
+          <span>
+            <span class="job-role">Business Account &amp; Technical Support</span>
+            <span class="job-co">Teleperformance · Lisboa, Portugal</span>
+          </span>
+          <span class="job-plus" aria-hidden="true">+</span>
+        </button>
+        <div class="job-body">
+          <ul>
+            <li>First point of contact for business accounts — resolving billing, account and platform issues in a high-volume queue.</li>
+            <li>Diagnosed technical incidents, escalated with clean reproduction steps, and followed them to resolution.</li>
+            <li>Kept a written knowledge base that shortened handling time for recurring cases across the team.</li>
+            <li>Learned the discipline that still drives my work: clear communication under pressure, in three languages.</li>
+          </ul>
+          <div class="tags">
+            <span class="tag">B2B support</span><span class="tag">Troubleshooting</span>
+            <span class="tag">SLA management</span><span class="tag">Knowledge base</span>
+            <span class="tag">Multilingual</span>
+          </div>
+        </div>
+      </article>
+
+    </div>
+
+    <!-- EDUCATION -->
+    <div class="grid cols-2" style="margin-top:clamp(48px,7vw,88px)">
+      <div class="card" data-reveal>
+        <span class="num">Education</span>
+        <h3>Master — Commerce, Finance &amp; Business Analytics</h3>
+        <p class="lead" style="margin-top:14px">
+          ISTEC Business School, Paris. A programme built on the intersection of commercial strategy,
+          financial analysis and applied data — the exact mix I use daily to read revenue, margin and demand.
+        </p>
+        <div class="tags" style="margin-top:20px">
+          <span class="tag">Finance</span><span class="tag">Business analytics</span>
+          <span class="tag">Commerce strategy</span><span class="tag">Paris</span>
+        </div>
+      </div>
+
+      <div class="card" data-reveal style="--d:100ms">
+        <span class="num">Focus</span>
+        <h3>What I work on</h3>
+        <p class="lead" style="margin-top:14px">
+          Revenue and payment data where a small accuracy win compounds: reconciliation,
+          reporting automation, KPI definition, and integration flows that stop breaking quietly.
+        </p>
+        <div class="tags" style="margin-top:20px">
+          <span class="tag">Revenue ops</span><span class="tag">Data quality</span>
+          <span class="tag">Automation</span><span class="tag">Dashboards</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== VALUE ========== -->
+<section id="value">
+  <div class="wrap">
+    <div class="eyebrow" data-reveal>02 — Value</div>
+    <h2 class="h2" data-reveal style="--d:80ms">What I bring<br>to a company</h2>
+
+    <ul class="value" style="margin-top:clamp(34px,5vw,60px)">
+      <li data-reveal>
+        <b>REPORTING</b>
+        <p>Dashboards and recurring reports that leadership opens without being asked — because the numbers reconcile and the definitions are agreed.</p>
+      </li>
+      <li data-reveal style="--d:60ms">
+        <b>ACCURACY</b>
+        <p>Reconciliation across orders, payments and settlement. I find where money and records disagree, and I fix the cause, not the symptom.</p>
+      </li>
+      <li data-reveal style="--d:120ms">
+        <b>AUTOMATION</b>
+        <p>Manual copy-paste workflows turned into scripts and pipelines, so the team spends its hours on judgement instead of formatting.</p>
+      </li>
+      <li data-reveal style="--d:180ms">
+        <b>TRANSLATION</b>
+        <p>Comfortable on both sides: I speak SQL with engineers and P&amp;L with commercial teams, and I keep both conversations honest.</p>
+      </li>
+      <li data-reveal style="--d:240ms">
+        <b>PAYMENTS</b>
+        <p>Hands-on with transaction processing and integration flows — authorisations, failures, settlement, and the edge cases that only show up in production.</p>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<!-- ========== WORK / TOOLS ALREADY SHOWN ABOVE ========== -->
+<!-- ========== SKILLS : PERIODIC TABLE ========== -->
+<section id="skills">
+  <div class="wrap">
+    <div class="eyebrow" data-reveal>03 — Skills</div>
+    <h2 class="h2" data-reveal style="--d:80ms">Periodic table</h2>
+    <p class="lead" data-reveal style="--d:160ms">
+      Hover or tap an element to open its detail. Blue = technical, green = soft skill.
+    </p>
+
+    <div class="ptable" id="ptable" data-reveal style="--d:200ms"></div>
+
+    <div class="legend" data-reveal style="--d:260ms">
+      <span><i></i>Technical</span>
+      <span><i class="g"></i>Soft skill</span>
+    </div>
+  </div>
+</section>
+
+<!-- ========== PROJECTS ========== -->
+<section id="projects">
+  <div class="wrap">
+    <div class="eyebrow" data-reveal>04 — Projects</div>
+    <h2 class="h2" data-reveal style="--d:80ms">Selected work</h2>
+
+    <div class="grid cols-3" style="margin-top:clamp(34px,5vw,60px)">
+
+      <article class="card proj" data-reveal>
+        <span class="num">01</span>
+        <h3>Sales &amp; Revenue Dashboard</h3>
+        <p class="lead" style="margin-top:14px">
+          Automated sales reporting pipeline: raw exports cleaned in Python, modelled in SQL,
+          visualised as a daily KPI dashboard. Built to answer one question — where is revenue actually leaking.
+        </p>
+        <div class="tags" style="margin-top:18px">
+          <span class="tag">Python</span><span class="tag">SQL</span><span class="tag">Power BI</span>
+        </div>
+        <div class="links">
+          <a class="link" href="[github.com](https://github.com/)" target="_blank" rel="noopener">GitHub ↗</a>
+          <a class="link" href="[github.io](https://github.io/)" target="_blank" rel="noopener">Live site ↗</a>
+        </div>
+      </article>
+
+      <article class="card proj" data-reveal style="--d:100ms">
+        <span class="num">02</span>
+        <h3>Payment Flow Reconciler</h3>
+        <p class="lead" style="margin-top:14px">
+          Matches transaction logs against settlement files, flags mismatches and produces a
+          readable exception report. Modelled on real acquirer / processor integration flows.
+        </p>
+        <div class="tags" style="margin-top:18px">
+          <span class="tag">Payments</span><span class="tag">Data quality</span><span class="tag">Automation</span>
+        </div>
+        <div class="links">
+          <a class="link" href="[github.com](https://github.com/)" target="_blank" rel="noopener">GitHub ↗</a>
+          <a class="link" href="[github.io](https://github.io/)" target="_blank" rel="noopener">Live site ↗</a>
+        </div>
+      </article>
+
+      <article class="card proj" data-reveal style="--d:200ms">
+        <span class="num">03</span>
+        <h3>KPI Explorer</h3>
+        <p class="lead" style="margin-top:14px">
+          Interactive front-end that turns a KPI dataset into a filterable, shareable view —
+          built to prove that a clean interface beats a 40-tab spreadsheet.
+        </p>
+        <div class="tags" style="margin-top:18px">
+          <span class="tag">JavaScript</span><span class="tag">Data viz</span><span class="tag">UX</span>
+        </div>
+        <div class="links">
+          <a class="link" href="[github.com](https://github.com/)" target="_blank" rel="noopener">GitHub ↗</a>
+          <a class="link" href="[github.io](https://github.io/)" target="_blank" rel="noopener">Live site ↗</a>
+        </div>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- ========== CONTACT ========== -->
+<section id="contact" class="contact">
+  <div class="wrap">
+    <div class="eyebrow" data-reveal>05 — Contact</div>
+    <h2 class="h2" data-reveal style="--d:80ms">Let's talk<br>numbers.</h2>
+    <p class="lead" data-reveal style="--d:160ms">
+      Open to sales operations, revenue operations and data analyst roles.
+      Available for interviews in English or French.
+    </p>
+    <a class="mailto" href="mailto:hello@example.com" data-reveal style="--d:220ms">hello@example.com</a>
+    <div class="hero-cta" data-reveal style="--d:300ms">
+      <a class="btn" href="[linkedin.com](https://www.linkedin.com/)" target="_blank" rel="noopener">LinkedIn</a>
+      <a class="btn ghost" href="[github.com](https://github.com/)" target="_blank" rel="noopener">GitHub</a>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <span>Bruno — Sales Ops &amp; Data</span>
+  <span>Built with HTML · CSS · JS</span>
+</footer>
+
+<!-- ========== POP WINDOW ========== -->
+<div class="pop" id="pop" role="dialog" aria-modal="false" aria-labelledby="popTitle">
+  <div class="pop-bar">
+    <span class="d"></span><span class="d"></span><span class="d"></span>
+    <span class="pop-title" id="popKind">skill</span>
+    <button class="pop-close" id="popClose" aria-label="Close">✕</button>
+  </div>
+  <div class="pop-body">
+    <h4 id="popTitle">—</h4>
+    <p id="popText">—</p>
+    <div class="pop-meter"><i id="popMeter"></i></div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   SKILL DATA  (periodic table)
+   ============================================================ */
+const SKILLS = [
+  // TECHNICAL
+  {sym:"SQL",  name:"Queries",      kind:"tech", level:95, text:"Joins, window functions, CTEs and query tuning. My default tool for investigating any revenue or payment question."},
+  {sym:"Py",   name:"Python",       kind:"tech", level:80, text:"pandas, requests and scripting — cleaning messy exports, automating recurring reports, hitting APIs."},
+  {sym:"PBI",  name:"Power BI",     kind:"tech", level:85, text:"Data models, DAX measures and dashboards designed for non-technical stakeholders to actually use."},
+  {sym:"XLS",  name:"Excel/Sheets", kind:"tech", level:95, text:"Pivot tables, Power Query, advanced formulas — the fastest tool when a decision is due today."},
+  {sym:"ETL",  name:"Data Pipelines",kind:"tech",level:75, text:"Extract, transform, load workflows that replace manual copy-paste and make refreshes reliable."},
+  {sym:"PAY",  name:"Payments",     kind:"tech", level:85, text:"Transaction processing: authorisations, captures, refunds, chargebacks and settlement files."},
+  {sym:"API",  name:"Integrations", kind:"tech", level:75, text:"Reading integration specs, testing endpoints and diagnosing why a flow breaks between systems."},
+  {sym:"DQ",   name:"Data Quality", kind:"tech", level:90, text:"Reconciliation, deduplication and validation rules. I fix the source, not the report on top of it."},
+  {sym:"CRM",  name:"CRM & ERP",    kind:"tech", level:80, text:"Keeping CRM and ERP records clean enough that forecasting and pipeline reporting mean something."},
+  {sym:"BI",   name:"Data Viz",     kind:"tech", level:85, text:"Chart choice, hierarchy and colour used with intent — a dashboard should answer before it decorates."},
+  {sym:"KPI",  name:"KPI Design",   kind:"tech", level:88, text:"Turning a vague business goal into one measurable definition agreed by every team involved."},
+  {sym:"JIRA", name:"Ticketing",    kind:"tech", level:78, text:"Jira, ServiceNow and queues: prioritising, documenting and closing incidents to a real resolution."},
+
+  // SOFT
+  {sym:"Cm",   name:"Communication",kind:"soft", level:92, text:"Explaining a data problem to a commercial team and a technical one — same facts, two languages."},
+  {sym:"An",   name:"Analytical",   kind:"soft", level:94, text:"Breaking an ambiguous problem into testable parts, then checking the assumption everyone skipped."},
+  {sym:"Ad",   name:"Adaptability", kind:"soft", level:90, text:"Four countries, four industries — I ramp on new systems and new vocabularies quickly."},
+  {sym:"Dm",   name:"Detail",       kind:"soft", level:93, text:"In payments and reconciliation, a decimal place is the whole job. Precision is a habit, not a phase."},
+  {sym:"Ow",   name:"Ownership",    kind:"soft", level:91, text:"I carry an issue to closure instead of handing it over at the first boundary."},
+  {sym:"Tl",   name:"Teamwork",     kind:"soft", level:88, text:"Working across ops, finance, engineering and support without needing to be the loudest in the room."},
+  {sym:"Pr",   name:"Prioritisation",kind:"soft",level:89,text:"Separating the urgent ticket from the structural problem, and making time for both."},
+  {sym:"Es",   name:"Executive comm",kind:"soft",level:85,text:"One page, three numbers, one recommendation. Leadership does not need the whole investigation."},
+  {sym:"Tr",   name:"Training",     kind:"soft", level:84, text:"Writing documentation and onboarding peers so a fix stays fixed after I move on."},
+  {sym:"Lg",   name:"Languages",    kind:"soft", level:95, text:"French, English, plus working experience in international teams across Poland and Portugal."},
+  {sym:"Cu",   name:"Curiosity",    kind:"soft", level:90, text:"I follow the anomaly. The interesting finding is usually where the numbers disagree."},
+  {sym:"Rc",   name:"Resilience",   kind:"soft", level:88, text:"High-volume support and production incidents taught me to stay calm and methodical under pressure."}
+];
+
+const ptable = document.getElementById('ptable');
+SKILLS.forEach((s, i) => {
+  const b = document.createElement('button');
+  b.className = 'cell ' + s.kind;
+  b.style.animationDelay = (i * 0.12) + 's';
+  b.dataset.idx = i;
+  b.setAttribute('aria-label', s.name);
+  b.innerHTML = `<span class="z">${String(i+1).padStart(2,'0')}</span>
+                 <span class="sym">${s.sym}</span>
+                 <span class="nm">${s.name}</span>`;
+  ptable.appendChild(b);
+});
+
+/* ============================================================
+   POP WINDOW
+   ============================================================ */
+const pop = document.getElementById('pop');
+const popTitle = document.getElementById('popTitle');
+const popText = document.getElementById('popText');
+const popMeter = document.getElementById('popMeter');
+const popKind = document.getElementById('popKind');
+let popTimer = null;
+
+function openPop(payload, anchor){
+  popTitle.textContent = payload.title;
+  popText.textContent = payload.text;
+  popKind.textContent = payload.kind;
+  pop.classList.add('show');
+  popMeter.style.width = '0%';
+  requestAnimationFrame(()=> requestAnimationFrame(()=>{ popMeter.style.width = payload.level + '%'; }));
+
+  const r = anchor.getBoundingClientRect();
+  const pw = pop.offsetWidth, ph = pop.offsetHeight;
+  let x = r.left + r.width/2 - pw/2;
+  let y = r.bottom + 12;
+  x = Math.max(12, Math.min(x, window.innerWidth - pw - 12));
+  if (y + ph > window.innerHeight - 12) y = Math.max(12, r.top - ph - 12);
+  pop.style.left = x + 'px';
+  pop.style.top  = y + 'px';
+
+  clearTimeout(popTimer);
+  popTimer = setTimeout(closePop, 6500);
+}
+function closePop(){ pop.classList.remove('show'); clearTimeout(popTimer); }
+document.getElementById('popClose').addEventListener('click', closePop);
+
+ptable.addEventListener('click', e => {
+  const c = e.target.closest('.cell'); if(!c) return;
+  const s = SKILLS[+c.dataset.idx];
+  openPop({title:s.name, text:s.text, level:s.level, kind:s.kind === 'tech' ? 'technical skill' : 'soft skill'}, c);
+});
+ptable.addEventListener('mouseover', e => {
+  const c = e.target.closest('.cell'); if(!c) return;
+  const s = SKILLS[+c.dataset.idx];
+  openPop({title:s.name, text:s.text, level:s.level, kind:s.kind === 'tech' ? 'technical skill' : 'soft skill'}, c);
+});
+document.addEventListener('click', e => {
+  if(!pop.contains(e.target) && !e.target.closest('.cell')) closePop();
+});
+window.addEventListener('scroll', closePop, {passive:true});
+window.addEventListener('keydown', e => { if(e.key === 'Escape') closePop(); });
+
+/* ============================================================
+   CHRONOLOGY : expand job details
+   ============================================================ */
+document.querySelectorAll('.job-head').forEach(head => {
+  head.addEventListener('click', () => {
+    const job = head.closest('.job');
+    const open = job.classList.toggle('open');
+    head.setAttribute('aria-expanded', open);
+    const plus = head.querySelector('.job-plus');
+    plus.textContent = open ? '−' : '+';
+  });
+});
+
+/* ============================================================
+   THEME + ACCENT SWITCHES
+   ============================================================ */
+const root = document.documentElement;
+const savedTheme  = localStorage.getItem('bruno-theme');
+const savedAccent = localStorage.getItem('bruno-accent');
+if (savedTheme)  root.dataset.theme  = savedTheme;
+if (savedAccent) root.dataset.accent = savedAccent;
+
+document.getElementById('themeBtn').addEventListener('click', () => {
+  root.dataset.theme = root.dataset.theme === 'dark' ? 'light' : 'dark';
+  localStorage.setItem('bruno-theme', root.dataset.theme);
+});
+
+document.querySelectorAll('.dot').forEach(d => {
+  const set = () => {
+    root.dataset.accent = d.dataset.accent;
+    localStorage.setItem('bruno-accent', d.dataset.accent);
+    document.querySelectorAll('.dot').forEach(x => x.setAttribute('aria-pressed', x === d));
+  };
+  d.addEventListener('click', set);
+  if (d.dataset.accent === root.dataset.accent) d.setAttribute('aria-pressed','true');
+});
+
+/* ============================================================
+   PRELOADER  (liquid charging bar)
+   ============================================================ */
+const fill = document.getElementById('fill');
+const pct  = document.getElementById('pct');
+const msg  = document.getElementById('loadmsg');
+const steps = ["Loading profile", "Charging data", "Compiling experience", "Ready"];
+let p = 0;
+const tick = setInterval(() => {
+  p += Math.random() * 9 + 3;
+  if (p >= 100){ p = 100; clearInterval(tick); setTimeout(finish, 420); }
+  fill.style.width = p + '%';
+  pct.textContent  = Math.floor(p) + '%';
+  msg.textContent  = steps[Math.min(steps.length - 1, Math.floor(p / 26))];
+}, 110);
+
+function finish(){
+  document.getElementById('loader').classList.add('done');
+  document.body.dataset.ready = 'true';
+  reveal();
+}
+
+/* ============================================================
+   REVEAL ON SCROLL
+   ============================================================ */
+const io = new IntersectionObserver(entries => {
+  entries.forEach(en => {
+    if (en.isIntersecting){
+      en.target.classList.add('in');
+      if (en.target.classList.contains('job')) en.target.classList.add('in');
+      io.unobserve(en.target);
+    }
+  });
+}, {threshold: 0.14, rootMargin: '0px 0px -8% 0px'});
+
+document.querySelectorAll('[data-reveal], .job').forEach((el, i) => {
+  if (!el.style.getPropertyValue('--d')) el.style.setProperty('--d', Math.min(i * 40, 320) + 'ms');
+  io.observe(el);
+});
+function reveal(){ document.querySelectorAll('[data-reveal]').forEach(el => {
+  const r = el.getBoundingClientRect();
+  if (r.top < window.innerHeight * 0.92) el.classList.add('in');
+}); }
+
+/* ============================================================
+   COUNT-UP STATS
+   ============================================================ */
+const counters = document.querySelectorAll('[data-count]');
+const cio = new IntersectionObserver(es => {
+  es.forEach(e => {
+    if(!e.isIntersecting) return;
+    const el = e.target, target = +el.dataset.count;
+    let n = 0;
+    const step = () => {
+      n += Math.max(1, Math.round(target / 22));
+      if (n >= target){ el.textContent = target; return; }
+      el.textContent = n; requestAnimationFrame(step);
+    };
+    step(); cio.unobserve(el);
+  });
+}, {threshold:.6});
+counters.forEach(c => cio.observe(c));
+
+/* ============================================================
+   SCROLL PROGRESS + SPINE + RAIL
+   ============================================================ */
+const progress = document.getElementById('progress');
+const spineFill = document.getElementById('spineFill');
+const timeline = document.getElementById('timeline');
+const railLinks = [...document.querySelectorAll('.rail a')];
+const sections = ['top','track','value','work','skills','projects','contact']
+  .map(id => document.getElementById(id)).filter(Boolean);
+
+function onScroll(){
+  const max = document.documentElement.scrollHeight - window.innerHeight;
+  progress.style.width = (max > 0 ? (window.scrollY / max) * 100 : 0) + '%';
+
+  if (timeline){
+    const r = timeline.getBoundingClientRect();
+    const total = r.height;
+    const passed = Math.min(Math.max(window.innerHeight * 0.6 - r.top, 0), total);
+    spineFill.style.height = (passed / total) * 100 + '%';
+  }
+
+  let active = sections[0];
+  sections.forEach(s => {
+    if (s.getBoundingClientRect().top <= window.innerHeight * 0.4) active = s;
+  });
+  railLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + (active ? active.id : 'top')));
+}
+window.addEventListener('scroll', onScroll, {passive:true});
+window.addEventListener('resize', onScroll);
+onScroll();
+
+/* ============================================================
+   MICRO PARTICLES + MOUSE REACTION
+   ============================================================ */
+const cv = document.getElementById('particles');
+const ctx = cv.getContext('2d');
+let W, H, dpr, parts = [];
+const mouse = { x: -9999, y: -9999 };
+
+function sizeCanvas(){
+  dpr = Math.min(window.devicePixelRatio || 1, 2);
+  W = cv.width  = innerWidth  * dpr;
+  H = cv.height = innerHeight * dpr;
+  cv.style.width = innerWidth + 'px';
+  cv.style.height = innerHeight + 'px';
+  buildParts();
+}
+function accentRGB(){
+  const v = getComputedStyle(root).getPropertyValue('--accent').trim();
+  const d = document.createElement('div'); d.style.color = v; document.body.appendChild(d);
+  const c = getComputedStyle(d).color; d.remove();
+  const m = c.match(/\d+/g);
+  return m ? {r:+m[0], g:+m[1], b:+m[2]} : {r:47,g:155,b:255};
+}
+let AC = {r:47,g:155,b:255}, GR = {r:35,g:224,b:122};
+function buildParts(){
+  const base = (innerWidth * innerHeight) / 16000;
+  const n = Math.max(40, Math.min(130, Math.round(base)));
+  parts = Array.from({length:n}, () => ({
+    x: Math.random() * W, y: Math.random() * H,
+    vx: (Math.random() - .5) * .28 * dpr, vy: (Math.random() - .5) * .28 * dpr,
+    r: (Math.random() * 1.5 + .5) * dpr,
+    green: Math.random() > .7
+  }));
+}
+function loop(){
+  ctx.clearRect(0, 0, W, H);
+  for (let i = 0; i < parts.length; i++){
+    const p = parts[i];
+    p.x += p.vx; p.y += p.vy;
+    if (p.x < 0 || p.x > W) p.vx *= -1;
+    if (p.y < 0 || p.y > H) p.vy *= -1;
+
+    // mouse repulsion
+    const dx = p.x - mouse.x * dpr, dy = p.y - mouse.y * dpr;
+    const dist = Math.hypot(dx, dy);
+    if (dist < 150 * dpr && dist > 0){
+      const f = (1 - dist / (150 * dpr)) * .9 * dpr;
+      p.x += (dx / dist) * f; p.y += (dy / dist) * f;
+    }
+
+    const c = p.green ? GR : AC;
+    ctx.beginPath();
+    ctx.fillStyle = `rgba(${c.r},${c.g},${c.b},.55)`;
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fill();
+
+    // link nearby particles
+    for (let j = i + 1; j < parts.length; j++){
+      const q = parts[j];
+      const d = Math.hypot(p.x - q.x, p.y - q.y);
+      if (d < 120 * dpr){
+        ctx.beginPath();
+        ctx.strokeStyle = `rgba(${AC.r},${AC.g},${AC.b},${(1 - d / (120 * dpr)) * .16})`;
+        ctx.lineWidth = .6 * dpr;
+        ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y); ctx.stroke();
+      }
+    }
+  }
+  requestAnimationFrame(loop);
+}
+addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; }, {passive:true});
+addEventListener('mouseout', () => { mouse.x = -9999; mouse.y = -9999; });
+addEventListener('resize', () => { AC = accentRGB(); sizeCanvas(); });
+document.querySelectorAll('.dot').forEach(d => d.addEventListener('click', () => { AC = accentRGB(); }));
+
+AC = accentRGB();
+GR = {r:35,g:224,b:122};
+sizeCanvas();
+loop();
+</script>
+</body>
+</html>
